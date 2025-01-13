@@ -99,8 +99,8 @@ The RAGPipeline class is the core of this application. It integrates the followi
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/your-repo/document-chatbot.git
-   cd document-chatbot
+   git clone https://github.com/PruthvirajChavan98/langchain-phi4-rag.git
+   cd langchain-phi4-rag
    ```
 
 2. **Install Dependencies**:
