@@ -1,0 +1,9 @@
+langchain
+langchain-ollama
+langchain-chroma
+langchain-community
+pdfplumber
+python-multipart
+fastapi
+uvicorn
+streamlit
