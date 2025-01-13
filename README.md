@@ -1,7 +1,4 @@
-# langchain-phi4-rag
-
-
-# Document Chatbot Using RAGPipeline and Phi-4
+# Document Chatbot Using LangChain and Phi-4
 
 This project is a PDF-based document chatbot that allows users to interact with their uploaded PDF documents using natural language queries. It leverages Retrieval-Augmented Generation (RAG) methodology to retrieve relevant information from documents and generate answers using a state-of-the-art language model.
 
