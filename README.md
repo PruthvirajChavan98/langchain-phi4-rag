@@ -80,30 +80,47 @@ The RAGPipeline class is the core of this application. It integrates the followi
 
 ## Usage
 
+### Running the PHI-4 LLM on Ollama
+
+1. **Install Ollama**:
+   Follow the installation instructions from [Ollama's official website](https://ollama.com).
+
+2. **Download the PHI-4 Model**:
+   ```bash
+   ollama pull phi4
+   ```
+
+3. **Run the Model**:
+   ```bash
+   ollama run phi4
+   ```
+
 ### Running the Application
 
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/your-repo/document-chatbot.git
    cd document-chatbot
+   ```
 
-	2.	Install Dependencies:
+2. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-pip install -r requirements.txt
+3. **Run the Backend**:
+   ```bash
+   uvicorn main:app --reload
+   ```
 
+4. **Run the Frontend**:
+   ```bash
+   streamlit run app.py
+   ```
 
-	3.	Run the Backend:
+5. **Access the Application**:
+   Open your browser and go to [http://127.0.0.1:8501](http://127.0.0.1:8501).
 
-uvicorn main:app --reload
-
-
-	4.	Run the Frontend:
-
-streamlit run app.py
-
-
-	5.	Access the Application:
-Open your browser and go to http://127.0.0.1:8501.
 
 Future Improvements
 	•	Multi-Document Support: Extend the application to allow querying across multiple PDFs.
