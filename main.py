@@ -1,40 +1,39 @@
 from fastapi import FastAPI, UploadFile, File
 from starlette.responses import StreamingResponse
-from langchain_ollama import ChatOllama, OllamaEmbeddings
 from pydantic import BaseModel, Field
+
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+
 from RAGPipeline import RAGPipeline
 from utility import get_pipeline_metadata, store_pipeline_metadata, save_pdf, init_db
 
-# Initialize FastAPI application
+# Create FastAPI app
 app = FastAPI()
 
-# Initialize embeddings and LLM
+# Initialize embeddings and LLM just once
 ollama_embeddings = OllamaEmbeddings(model="nomic-embed-text")
 
-llm = ChatOllama(
-    model="phi4",
-    temperature=0,
-    verbose=True
-)
+llm = ChatOllama(model="phi4", temperature=0, streaming=True)
 
-# Pydantic models
+
+# Pydantic model
 class AskQuestionRequest(BaseModel):
-    """Query parameters for asking a question about an uploaded PDF."""
-    question: str = Field(..., description="The question to ask about the PDF.")
-    pdf_name: str = Field(..., description="The name of the previously uploaded PDF.")
+    question: str = Field(..., description="Question about the PDF.")
+    pdf_name: str = Field(..., description="Name of the previously uploaded PDF.")
 
-# Database initialization
+# Initialize database
 init_db()
 
-# API endpoints
 @app.post("/upload")
 async def upload_pdf(file: UploadFile = File(...)):
+    # Save the incoming PDF locally
     pdf_name = file.filename
-    print(f"Uploaded PDF name: {pdf_name}")
-
-    # Save PDF and initialize RAGPipeline
     pdf_path = save_pdf(file)
+
+    # Unique directory for this PDF's vectorstore
     vectorstore_path = f"./vectorstore_{pdf_name}"
+
+    # Instantiate RAGPipeline (creates or loads Chroma index)
     pipeline = RAGPipeline(
         llm=llm,
         embeddings=ollama_embeddings,
@@ -42,24 +41,21 @@ async def upload_pdf(file: UploadFile = File(...)):
         vectorstore_path=vectorstore_path
     )
 
-    # Store metadata in SQLite
+    # Store references in our DB
     store_pipeline_metadata(pdf_name, pdf_path, vectorstore_path)
 
     return {"message": f"Uploaded and processed {pdf_name} successfully."}
 
 @app.post("/ask")
 async def ask_question(params: AskQuestionRequest):
-    pdf_name = params.pdf_name
-    print(f"Requested PDF name: {pdf_name}")
-
-    # Retrieve metadata
-    metadata = get_pipeline_metadata(pdf_name)
+    # Look up the PDF's metadata from our DB
+    metadata = get_pipeline_metadata(params.pdf_name)
     if not metadata:
         return {"error": "No pipeline found for the provided PDF name."}
 
     pdf_path, vectorstore_path = metadata
 
-    # Recreate RAGPipeline
+    # Re-initialize RAGPipeline (will load an existing index if found)
     pipeline = RAGPipeline(
         llm=llm,
         embeddings=ollama_embeddings,
@@ -67,4 +63,8 @@ async def ask_question(params: AskQuestionRequest):
         vectorstore_path=vectorstore_path
     )
 
-    return StreamingResponse(pipeline.generate_stream(params.question), media_type="text/event-stream")
+    # Send back a streaming response
+    return StreamingResponse(
+        pipeline.generate_stream(params.question),
+        media_type="text/event-stream"
+    )
